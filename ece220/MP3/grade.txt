@@ -1,0 +1,35 @@
+Compilation Results:
+********************
+mp3.c: In function 'main':
+mp3.c:44:4: warning: repeated ' ' flag in format [-Wformat=]
+    printf("%  " PRIu64 " ",pnum );  
+    ^
+mp3.c:44:4: warning: ' ' flag used with '%u' gnu_printf format [-Wformat=]
+
+Test Case 1:
+********************
+test1 passed
+
+Test Case 2:
+********************
+test2 passed
+
+Test Case 3:
+********************
+test3 passed
+
+Test Case 4:
+********************
+test4 passed
+
+Test Case 5:
+********************
+test5 failed
+
+Grade:
+******
+Late submission: 
+Functionality: 72 
+Comments and Style: 5 
+Intro paragraph: 5 
+Total: 82

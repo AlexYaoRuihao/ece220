@@ -1,0 +1,11 @@
+// Symbol table
+// Scope level 0:
+//	Symbol Name       Page Address
+//	----------------  ------------
+//	BIGLOOP           3000
+//	JUSTOUT           300A
+//	ASCII_ZERO        300D
+//	ASCII_NINE        300E
+//	ASCII_NEG_ASTERISK  300F
+//	ASCII_NEG_ZERO    3010
+//	STRING_START      3011

@@ -1,0 +1,39 @@
+Compilation Results:
+********************
+mp3.c: In function 'int main()':
+mp3.c:44:17: error: expected ')' before 'PRIu64'
+    printf("%  " PRIu64 " ",pnum );  
+                 ^
+mp3.c:44:33: warning: repeated ' ' flag in format [-Wformat=]
+    printf("%  " PRIu64 " ",pnum );  
+                                 ^
+mp3.c:44:33: warning: conversion lacks type at end of format [-Wformat=]
+mp3.c:44:33: warning: too many arguments for format [-Wformat-extra-args]
+
+Test Case 1:
+********************
+test1 failed
+
+Test Case 2:
+********************
+test2 failed
+
+Test Case 3:
+********************
+test3 failed
+
+Test Case 4:
+********************
+test4 failed
+
+Test Case 5:
+********************
+test5 failed
+
+Grade:
+******
+Late submission: 0
+Functionality: 0
+Comments and Style: 5
+Intro paragraph: 5
+Total: 10

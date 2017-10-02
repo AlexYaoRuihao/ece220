@@ -1,0 +1,110 @@
+/*
+ * countLiveNeighbor
+ * Inputs:
+ * board: 1-D array of the current game board. 1 represents a live cell.
+ * 0 represents a dead cell
+ * boardRowSize: the number of rows on the game board.
+ * boardColSize: the number of cols on the game board.
+ * row: the row of the cell that needs to count alive neighbors.
+ * col: the col of the cell that needs to count alive neighbors.
+ * Output:
+ * return the number of alive neighbors. There are at most eight neighbors.
+ * Pay attention for the edge and corner cells, they have less neighbors.
+ */
+int countLiveNeighbor(int* board, int boardRowSize, int boardColSize, int row, int col)
+{
+	int alive_n = 0;
+
+	for (int i = row-1; i<row+2; i++){
+		for (int j = col-1; j<col+2; j++){
+			if (i<0 || j<0 || j>boardColSize-1 || i>boardRowSize-1 ){
+				continue;
+			}
+			if (board[i*boardColSize+j]==1){
+				alive_n++;
+				}
+		}
+	}
+	if (board[row*boardColSize+col]==1){
+		alive_n--;
+	}
+	return alive_n;
+}
+/*
+ * Update the game board to the next step.
+ * Input: 
+ * board: 1-D array of the current game board. 1 represents a live cell.
+ * 0 represents a dead cell
+ * boardRowSize: the number of rows on the game board.
+ * boardColSize: the number of cols on the game board.
+ * Output: board is updated with new values for next step.
+ */
+void updateBoard(int* board, int boardRowSize, int boardColSize) 
+{
+	int all=boardColSize*boardRowSize;
+	int up_board[all];
+	for (int i=0; i<boardRowSize; i++){
+		for (int j=0; j<boardColSize; j++){
+			int this_cell= i*boardColSize+j;
+			int live_num = countLiveNeighbor(board, boardRowSize, boardColSize, i, j);
+			if (board[this_cell]==1){
+				if (live_num==2||live_num==3){
+					up_board[this_cell]=1;
+				}
+				else{
+					up_board[this_cell]=0;
+				}	
+			}
+			if ((board[this_cell]==0)&&(live_num==3)){
+					up_board[this_cell]=1;
+			}
+		}
+	}
+	for (int i =0; i<all; i++ )
+	{
+		board[i]=up_board[i];
+	}
+	return;
+}
+
+/*
+ * aliveStable
+ * Checks if the alive cells stay the same for next step
+ * board: 1-D array of the current game board. 1 represents a live cell.
+ * 0 represents a dead cell
+ * boardRowSize: the number of rows on the game board.
+ * boardColSize: the number of cols on the game board.
+ * Output: return 1 if the alive cells for next step is exactly the same with 
+ * current step or there is no alive cells at all.
+ * return 0 if the alive cells change for the next step.
+ */ 
+int aliveStable(int* board, int boardRowSize, int boardColSize)
+{
+	int old_board[boardRowSize*boardColSize];
+	int same=0;
+	int all_die=0;
+	int all=boardColSize*boardRowSize;
+	for (int i =0; i<all; i++ ){
+		old_board[i]=board[i];
+	}
+	updateBoard(board,boardRowSize,boardColSize);
+	for (int j =0; j<all; j++ ){
+		if (board[j]==old_board[j]){
+			same++;
+		}
+		if (board[j]==0){
+			all_die++;
+		}
+	}
+	if (same==all || all_die==all){
+		return 1;
+	}
+	else{
+		return 0;
+	}	 
+}
+
+				
+				
+			
+

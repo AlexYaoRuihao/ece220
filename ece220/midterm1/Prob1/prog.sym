@@ -1,0 +1,13 @@
+// Symbol table
+// Scope level 0:
+//	Symbol Name       Page Address
+//	----------------  ------------
+//	PSquare           3002
+//	RPLUS             3005
+//	SQR               3007
+//	FINAL             3010
+//	DONE              3014
+//	SAVER7            3016
+//	SAVER1            3017
+//	SAVER0            3018
+

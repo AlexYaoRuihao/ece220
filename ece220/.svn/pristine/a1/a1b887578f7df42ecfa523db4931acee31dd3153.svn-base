@@ -1,0 +1,181 @@
+;
+;
+;
+.ORIG x3000
+	
+;your code goes here
+	
+
+KBINPUT
+	LDI R1,KBSR
+	BRzp KBINPUT
+	LDI R0,KBDR
+
+	NOT R1,R0	; CHECK WHAT INPUT
+	ADD R1,R1,#1
+	ADD R1,R1,COMA
+	BRz FINALCHK	; IF COMA, PRINT
+	ADD R1,R1 SPACE
+	BRz KBINPUT	; IF SPACE, GET NEW INPUT
+
+	EVALUATE
+	
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;R3- value to print in hexadecimal
+
+PRINT_HEX
+
+	AND R4,R4,#0	; USE R4 AS 3 COUNTER
+	ADD R4,R4,#3
+REC	AND R2,R2,#0    ; R2 AS 4 COUNTER 
+	ADD R2,R2,#4
+	AND R1,R1,#0
+	AND R0,R0,#0
+
+CHK	ADD R3,R3,#0
+	BRzp ZERO
+	ADD R1,R1,#1	; ADD A BINARY ONE
+ZERO	ADD R3,R3,R3	; SHIFT R3, NEXT BIT
+	ADD R2,R2,#-1
+	BRz HEX
+	ADD R1,R1,R1	; SHIFT R1, NEXT BIT
+	ADD R2,R2,#0
+	BRp CHK
+
+HEX	ADD R1,R1,#-10  ; CHECK NUM OR CHAR
+	BRzp CHAR
+	ADD R1,R1,#10
+
+NB	LD R0,ASCII0    ; PRINT NUMBER
+	ADD R0,R1,R0	
+	OUT
+	ADD R4,R4,#-1
+	BRzp REC
+	BRn DONE
+	
+CHAR	LD R0,ASCIIA	; PRINT CHAR
+	ADD R0,R1,R0
+	OUT
+	ADD R4,R4,#-1
+	BRzp REC
+	BRn DONE
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;R0 - character input from keyboard
+;R6 - current numerical output
+;
+;
+EVALUATE
+
+;your code goes here
+	
+
+if number, push
+if sign, pop two then compute
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+PLUS	
+;your code goes here
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+MIN	
+;your code goes here
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+MUL	
+;your code goes here
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+;DIV	
+;your code goes here
+	
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+;EXP
+;your code goes here
+	
+;IN:R0, OUT:R5 (0-success, 1-fail/overflow)
+;R3: STACK_END R4: STACK_TOP
+;
+PUSH	
+	ST R3, PUSH_SaveR3	;save R3
+	ST R4, PUSH_SaveR4	;save R4
+	AND R5, R5, #0		;
+	LD R3, STACK_END	;
+	LD R4, STACk_TOP	;
+	ADD R3, R3, #-1		;
+	NOT R3, R3		;
+	ADD R3, R3, #1		;
+	ADD R3, R3, R4		;
+	BRz OVERFLOW		;stack is full
+	STR R0, R4, #0		;no overflow, store value in the stack
+	ADD R4, R4, #-1		;move top of the stack
+	ST R4, STACK_TOP	;store top of stack pointer
+	BRnzp DONE_PUSH		;
+OVERFLOW
+	ADD R5, R5, #1		;
+DONE_PUSH
+	LD R3, PUSH_SaveR3	;
+	LD R4, PUSH_SaveR4	;
+	RET
+
+
+PUSH_SaveR3	.BLKW #1	;
+PUSH_SaveR4	.BLKW #1	;
+
+
+;OUT: R0, OUT R5 (0-success, 1-fail/underflow)
+;R3 STACK_START R4 STACK_TOP
+;
+POP	
+	ST R3, POP_SaveR3	;save R3
+	ST R4, POP_SaveR4	;save R3
+	AND R5, R5, #0		;clear R5
+	LD R3, STACK_START	;
+	LD R4, STACK_TOP	;
+	NOT R3, R3		;
+	ADD R3, R3, #1		;
+	ADD R3, R3, R4		;
+	BRz UNDERFLOW		;
+	ADD R4, R4, #1		;
+	LDR R0, R4, #0		;
+	ST R4, STACK_TOP	;
+	BRnzp DONE_POP		;
+UNDERFLOW
+	ADD R5, R5, #1		;
+DONE_POP
+	LD R3, POP_SaveR3	;
+	LD R4, POP_SaveR4	;
+	RET
+
+
+POP_SaveR3	.BLKW #1	;
+POP_SaveR4	.BLKW #1	;
+STACK_END	.FILL x3FF0	;
+STACK_START	.FILL x4000	;
+STACK_TOP	.FILL x4000	;
+ASCIIA		.FILL x37
+ASCII0		.FILL x30
+SPACE		.FILL x20
+KBSR		.FILL xFE00
+KBDR		.FILL xFE02
+
+
+.END

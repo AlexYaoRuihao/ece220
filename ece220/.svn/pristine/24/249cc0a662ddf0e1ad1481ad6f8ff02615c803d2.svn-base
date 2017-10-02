@@ -1,0 +1,302 @@
+;
+;
+;
+.ORIG x3000
+	
+;your code goes here
+
+
+KBINPUT 
+	GETC
+	OUT
+	NOT R1,R0	; CHECK WHAT INPUT
+	ADD R1,R1,#1
+	LD R2,COMA
+	ADD R2,R1,R2
+	BRz FINALCHK	; IF COMA, PRINT
+	LD R2,SPACE
+	ADD R2,R1,R2
+	BRz KBINPUT	; IF SPACE, GET NEW INPUT
+	BRnp EVALUATE  ;	R0:INPUT R1:NEG_INPUT R2:OFFSET 
+
+	
+
+
+
+;	
+	 
+
+FINALCHK
+	LD R1,STACK_START
+	LD R2,STACK_TOP
+	ADD R2,R2,#1
+	NOT R2,R2
+	ADD R2,R2,#1
+	ADD R1,R1,R2
+	BRz PRINT_HEX
+	JSR INVALID
+
+
+INVALID
+	LD R0,NEWLINE
+	OUT
+	LEA R0,INVAL
+	PUTS
+	BRnzp  DONE
+
+DONE	
+	HALT	
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;R3- value to print in hexadecimal
+
+PRINT_HEX
+
+	LD R0,HEXX
+	OUT
+	AND R4,R4,#0	; USE R4 AS 3 COUNTER
+	ADD R4,R4,#3
+REC	AND R2,R2,#0    ; R2 AS 4 COUNTER 
+	ADD R2,R2,#4
+	AND R1,R1,#0
+	AND R0,R0,#0
+
+CHK	ADD R3,R3,#0
+	BRzp ZERO
+	ADD R1,R1,#1	; ADD A BINARY ONE
+ZERO	ADD R3,R3,R3	; SHIFT R3, NEXT BIT
+	ADD R2,R2,#-1
+	BRz HEX
+	ADD R1,R1,R1	; SHIFT R1, NEXT BIT
+	ADD R2,R2,#0
+	BRp CHK
+
+HEX	ADD R1,R1,#-10  ; CHECK NUM OR CHAR
+	BRzp CHAR
+	ADD R1,R1,#10
+
+NB	LD R0,ASCII0    ; PRINT NUMBER
+	ADD R0,R1,R0	
+	OUT
+	ADD R4,R4,#-1
+	BRzp REC
+	BRn DONE
+	
+CHAR	LD R0,ASCIIA	; PRINT CHAR
+	ADD R0,R1,R0
+	OUT
+	ADD R4,R4,#-1
+	BRzp REC
+	BRn DONE
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;R0 - character input from keyboard
+;R6 - current numerical output
+;
+;
+EVALUATE
+;IN: R0:INPUT R1:NEG_INPUT R2:OFFSET 
+;your code goes here
+;R4 LOAD SIGNS
+;R1 CHECK WHICH SIGN AVOIDING CHANGE R0
+
+	LD R4,NEG_PW
+	ADD R1,R0,R4
+	BRz EXP
+	LD R4,NEG_ZERO
+	ADD R1,R0,R4
+	BRzp NUM
+
+	LD R4,NEG_PLS
+	ADD R1,R0,R4
+	BRz PLUS
+	LD R4,NEG_MIS
+	ADD R1,R0,R4
+	BRz MIN
+	LD R4,NEG_MUL
+	ADD R1,R0,R4
+	BRz MUL
+	LD R4,NEG_DIV
+	ADD R1,R0,R4
+	BRz DIV
+NUM	JSR PUSH
+	BRnzp START
+
+	
+
+
+
+	
+;if number, push
+;if sign, pop two then compute
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+PLUS	
+;your code goes here
+	JSR POP
+	ADD R3,R0,#0
+	JSR POP 
+	ADD R4,R0,#0
+	ADD R5,R5,#0 ; CHECK OVERFLOW
+	BRp INVALID
+	AND R0,R0,#0
+	ADD R0,R3,R4
+	JSR PUSH
+	BRnzp KBINPUT	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+MIN	
+;your code goes here
+	JSR POP
+        ADD R3,R0,#0
+        JSR POP
+        ADD R4,R0,#0
+        ADD R5,R5,#0
+        BRp INVALID
+	AND R0,R0,0
+	NOT R4,R4	; NEG_R4
+	ADD R4,R4,#1
+	ADD R0,R3,R4	; MINS
+	JSR PUSH
+	BRnzp KBINPUT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+MUL	
+;your code goes here
+        JSR POP
+        ADD R3,R0,#0
+        JSR POP
+        ADD R4,R0,#0
+	AND R0,R0,#0
+        ADD R5,R5,#0
+        BRp INVALID
+MULOP	ADD R0,R0,R3
+	ADD R4,R4,#-1
+	BRp MULOP
+	JSR PUSH
+	BRnzp KBINPUT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+DIV	
+;your code goes here
+        JSR POP
+        ADD R4,R0,#0
+        JSR POP
+        ADD R3,R0,#0
+        ADD R5,R5,#0
+        BRp INVALID
+	AND R0,R0,#0
+	NOT R4,R4
+	ADD R4,R4,#1
+DLOP	ADD R0,R0,#1
+	ADD R3,R3,R4
+	BRp DLOP	; IF +, KEEP DIVID
+	BRz DOUT	; IF 0, OUTPUT
+	ADD R0,R0,#-1	; IF -, DIVID OVERFLOW, OUTPUT-1
+DOUT	JSR PUSH
+	BRnzp KBINPUT	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;input R3, R4
+;out R0
+EXP
+;your code goes here
+	JSR POP
+        ADD R4,R0,#0
+        JSR POP
+        ADD R3,R0,#0
+        ADD R5,R5,#0
+        BRp INVALID
+	AND R0,R0,#0
+OUTER	ADD R4,R4,#-1
+	ADD R5,R3,#0
+INER	ADD R0,R0,R3	
+	ADD R5,R5,#-1
+	BRz EXCK
+	BRnp INER
+EXCK	ADD R4,R4,#0
+	BRz EXPDONE
+	BRnp OUTER
+EXPDONE	JSR PUSH
+	BRnzp KBINPUT
+;IN:R0, OUT:R5 (0-success, 1-fail/overflow)
+;R3: STACK_END R4: STACK_TOP
+;
+PUSH	
+	ST R3, PUSH_SaveR3	;save R3
+	ST R4, PUSH_SaveR4	;save R4
+	AND R5, R5, #0		;
+	LD R3, STACK_END	;
+	LD R4, STACk_TOP	;
+	ADD R3, R3, #-1		;
+	NOT R3, R3		;
+	ADD R3, R3, #1		;
+	ADD R3, R3, R4		;
+	BRz OVERFLOW		;stack is full
+	STR R0, R4, #0		;no overflow, store value in the stack
+	ADD R4, R4, #-1		;move top of the stack
+	ST R4, STACK_TOP	;store top of stack pointer
+	BRnzp DONE_PUSH		;
+OVERFLOW
+	ADD R5, R5, #1		;
+DONE_PUSH
+	LD R3, PUSH_SaveR3	;
+	LD R4, PUSH_SaveR4	;
+	RET
+
+
+PUSH_SaveR3	.BLKW #1	;
+PUSH_SaveR4	.BLKW #1	;
+
+
+;OUT: R0, OUT R5 (0-success, 1-fail/underflow)
+;R3 STACK_START R4 STACK_TOP
+;
+POP	
+	ST R3, POP_SaveR3	;save R3
+	ST R4, POP_SaveR4	;save R3
+	AND R5, R5, #0		;clear R5
+	LD R3, STACK_START	;
+	LD R4, STACK_TOP	;
+	NOT R3, R3		;
+	ADD R3, R3, #1		;
+	ADD R3, R3, R4		;
+	BRz UNDERFLOW		;
+	ADD R4, R4, #1		;
+	LDR R0, R4, #0		;
+	ST R4, STACK_TOP	;
+	BRnzp DONE_POP		;
+UNDERFLOW
+	ADD R5, R5, #1		;
+DONE_POP
+	LD R3, POP_SaveR3	;
+	LD R4, POP_SaveR4	;
+	RET
+
+
+POP_SaveR3	.BLKW #1	;
+POP_SaveR4	.BLKW #1	;
+STACK_END	.FILL x3FF0	;
+STACK_START	.FILL x4000	;
+STACK_TOP	.FILL x4000	;
+ASCIIA		.FILL x37
+ASCII0		.FILL x30
+COMA		.FILL x3B
+SPACE		.FILL x20
+NEG_ZERO	.FILL xFFDE
+NEG_PLS		.FILL xFFD5
+NEG_MIS		.FILL xFFD3
+NEG_MUL		.FILL xFFD6
+NEG_DIV		.FILL xFFD1
+NEG_PW		.FILL xFFA2
+INVAL		.STRINGZ "Invalid Input"
+NEWLINE		.FILL x0A
+HEXX		.FILL x78
+.END
