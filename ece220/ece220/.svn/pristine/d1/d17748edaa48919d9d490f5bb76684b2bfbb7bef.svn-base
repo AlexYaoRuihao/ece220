@@ -1,0 +1,238 @@
+;
+; The code given to you here implements the histogram calculation that
+; we developed in class.  In programming studio, we will add code that
+; prints a number in hexadecimal to the monitor.
+;
+; Your assignment for this program is to combine these two pieces of
+; code to print the histogram to the monitor.
+;
+; If you finish your program,
+;    ** commit a working version to your repository  **
+;    ** (and make a note of the repository version)! **
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;The Intro paragraph is at PRINT_HIST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+	.ORIG	x3000		; starting address is x3000
+
+
+;
+; Count the occurrences of each letter (A to Z) in an ASCII string
+; terminated by a NUL character.  Lower case and upper case should
+; be counted together, and a count also kept of all non-alphabetic
+; characters (not counting the terminal NUL).
+;
+; The string starts at x4000.
+;
+; The resulting histogram (which will NOT be initialized in advance)
+; should be stored starting at x3F00, with the non-alphabetic count
+; at x3F00, and the count for each letter in x3F01 (A) through x3F1A (Z).
+;
+; table of register use in this part of the code
+;    R0 holds a pointer to the histogram (x3F00)
+;    R1 holds a pointer to the current position in the string
+;       and as the loop count during histogram initialization
+;    R2 holds the current character being counted
+;       and is also used to point to the histogram entry
+;    R3 holds the additive inverse of ASCII '@' (xFFC0)
+;    R4 holds the difference between ASCII '@' and 'Z' (xFFE6)
+;    R5 holds the difference between ASCII '@' and '`' (xFFE0)
+;    R6 is used as a temporary register
+;
+
+	LD R0,HIST_ADDR      	; point R0 to the start of the histogram
+
+	; fill the histogram with zeroes
+	AND R6,R6,#0		; put a zero into R6
+	LD R1,NUM_BINS		; initialize loop count to 27
+	ADD R2,R0,#0		; copy start of histogram into R2
+
+	; loop to fill histogram starts here
+HFLOOP	STR R6,R2,#0		; write a zero into histogram
+	ADD R2,R2,#1		; point to next histogram entry
+	ADD R1,R1,#-1		; decrement loop count
+	BRp HFLOOP		; continue until loop count reaches zero
+
+	; initialize R1, R3, R4, and R5 from memory
+	LD R3,NEG_AT		; set R3 to additive inverse of ASCII '@'
+	LD R4,AT_MIN_Z		; set R4 to difference between ASCII '@' and 'Z'
+	LD R5,AT_MIN_BQ		; set R5 to difference between ASCII '@' and '`'
+	LD R1,STR_START		; point R1 to start of string
+
+	; the counting loop starts here
+COUNTLOOP
+	LDR R2,R1,#0		; read the next character from the string
+	BRz PRINT_HIST		; found the end of the string
+
+	ADD R2,R2,R3		; subtract '@' from the character
+	BRp AT_LEAST_A		; branch if > '@', i.e., >= 'A'
+NON_ALPHA
+	LDR R6,R0,#0		; load the non-alpha count
+	ADD R6,R6,#1		; add one to it
+	STR R6,R0,#0		; store the new non-alpha count
+	BRnzp GET_NEXT		; branch to end of conditional structure
+AT_LEAST_A
+	ADD R6,R2,R4		; compare with 'Z'
+	BRp MORE_THAN_Z         ; branch if > 'Z'
+
+; note that we no longer need the current character
+; so we can reuse R2 for the pointer to the correct
+; histogram entry for incrementing
+ALPHA	ADD R2,R2,R0		; point to correct histogram entry
+	LDR R6,R2,#0		; load the count
+	ADD R6,R6,#1		; add one to it
+	STR R6,R2,#0		; store the new count
+	BRnzp GET_NEXT		; branch to end of conditional structure
+
+; subtracting as below yields the original character minus '`'
+MORE_THAN_Z
+	ADD R2,R2,R5		; subtract '`' - '@' from the character
+	BRnz NON_ALPHA		; if <= '`', i.e., < 'a', go increment non-alpha
+	ADD R6,R2,R4		; compare with 'z'
+	BRnz ALPHA		; if <= 'z', go increment alpha count
+	BRnzp NON_ALPHA		; otherwise, go increment non-alpha
+
+GET_NEXT
+	ADD R1,R1,#1		; point to next character in string
+	BRnzp COUNTLOOP		; go to start of counting loop
+
+
+
+
+PRINT_HIST
+;Name: Ruihao Yao
+;NetID: ruihaoy2
+;Date: 2018.01.22
+;Intro Paragraph:
+;The code starting at PRINT_HIST basically serves to iterate through and print out
+;the numbers stored from x3F00. The approach that I use is to divide the 16bits into
+;4 groups of 4 bits and use a group counter and a bit counter. When the bit counter
+;goes to zero, I print out its hexadecimal representation. I compare the 4bits with #9 and
+;add a different ASCII value to them separately to accomplish this task.
+
+;register table usage:
+;R0 is used as a temporary to load the ascii value
+;R1 contains the content stored at HIST_ADDR x3F00
+;R2 is used as the group counter
+;R3 is used as the bits counter
+;R4 is used to hold groups of 4 bits in R1
+;R5 is used as the numbers of histogram pointer
+;R6 is used to hold the address of the histogram for iteration purposes
+;R7 is used as a medium for both loading and storing information at x5000, the arbitrary address that I assigned
+
+; you will need to insert your code to print the histogram here
+
+;This section serves to be an interation loop to go through the whole histogram
+;I used caller save program to manually store R7's value in x5000 and reload it whenever
+;I want to use it again
+LD R5, NUM_BINS                      ;Set R5 to be the histogram pointer
+LD R6, HIST_ADDR                     ;Set R6 to contain the histogram starting address
+LD R7, At_ASCII                      ;Set R7 to contain the @ ASCII value
+STI R7, Rseven                       ;Store R7's value to x5000
+AND R0, R0, #0                       ;Clear R0
+ADD R0, R0, R7                       ;Set R0 to contain the value of R7
+OUT
+LD R0, SPACE                         ;Load R0 with the ASCII value of SPACE
+OUT
+
+;The below section is used to print the general format of the histogram. That is to say,
+;The first character followed by a space.
+BRnzp SMALL_LOOP                     ;Jump to SMALL_LOOP
+BIG_LOOP
+
+LD R0, NEWLINE                       ;Load R0 with the ASCII value of NEWLINE
+OUT
+
+ADD R6, R6, #1                       ;Add R6 by #1
+ADD R5, R5, #-1                      ;Subtract R5 by #1
+BRz DONE                             ;Halt if R5 goes to 0
+
+LDI R7, Rseven                       ;Load R7 with value stored at x5000
+ADD R7, R7, #1                       ;Add R7 by #1
+STI R7, Rseven                       ;Store R7 to x5000
+AND R0, R0, #0                       ;Clear R0
+ADD R0, R0, R7                     	 ;Initialize R0 with the value in R7
+OUT
+
+LD R0, SPACE                         ;Load R0 with ASCII value of SPACE
+OUT
+
+;The below program is used to print out the value stored from x3F00 and consecutive locations in hexadecimal format
+
+SMALL_LOOP
+LDR R1, R6, #0                       ;Load R1 with the content stored at HIST_ADDR x3F00
+AND R2, R2, #0                       ;initialize R2
+ADD R2, R2, #4                       ;R2 as the group counter
+BRnzp BITS_LOOP                      ;Go to BITS_LOOP
+GROUP_LOOP
+ADD R2, R2, #-1                      ;Decrement the group counter
+BRz BIG_LOOP                         ;If group counter is 0, go to BIG_LOOP
+BITS_LOOP
+AND R4, R4, #0                       ;R4 is used to store digits
+AND R3, R3, #0                       ;initialize R3 as the bits counter
+ADD R3, R3, #4                       ;Set R3 to contain value of 4
+BITS_INNER_LOOP
+ADD R3, R3, #0                       ;Repeat R3
+BRz PRINTLOOP
+ADD R4, R4, R4                       ;Shift R4 left by 1 bit
+ADD R1, R1, #0                       ;Repeat R1
+BRn OneAtFront                       ;If 1 is detected, go to OneAtFront
+ADD R4, R4, #0                       ;Add the digit of 0 to R4
+
+BRnzp Shift_loop                     ;Go to Shift_loop
+OneAtFront
+ADD R4, R4, #1                       ;Add the digit of 1 to R4
+
+Shift_loop
+ADD R1, R1, R1                       ;Shift R1 to the left by 1 bit
+ADD R3, R3, #-1                      ;Decrement the bits counter
+BRnzp BITS_INNER_LOOP                ;Go to BITS_INNER_LOOP
+
+;PRINTLOOP is used to print the 4 digits ready stored inside R4 in a hexadecimal digit
+PRINTLOOP
+ADD R4, R4, #-9                      ;Decrement R4 by #9
+BRnz DIGIT_CASE                      ;If it's zero and negative, go to DIGIT_CASE
+ALPHABET_CASE
+ADD R4, R4, #9                       ;Add back R4 the value of #9
+LD R0, AMinus10_ASCII                ;Load R0 with AMinus10_ASCII's ASCII value
+ADD R0, R0, R4                       ;Set R0 to contain the value in R4
+OUT
+BRnzp GROUP_LOOP                     ;Go to GROUP_LOOP
+DIGIT_CASE
+ADD R4, R4, #9                       ;Add back R4 the value of #9
+LD R0, ZERO_ASCII                    ;Load R0 with ZERO_ASCII's ASCII value
+ADD R0, R0, R4                       ;Add R4's value to R0
+OUT
+BRnzp GROUP_LOOP                     ;Go to GROUP_LOOP
+
+
+DONE	HALT		                     	; done
+
+
+; the data needed by the program
+NEWLINE .FILL x000A                  ;ASCII value of NEWLINE CHARACTER
+SPACE .FILL x0020                    ;ASCII value of SPACE CHARACTER
+NUM_BINS	.FILL #27	                 ; 27 loop iterations
+NEG_AT		.FILL xFFC0	               ; the additive inverse of ASCII '@'
+AT_MIN_Z	.FILL xFFE6	               ; the difference between ASCII '@' and 'Z'
+AT_MIN_BQ	.FILL xFFE0	               ; the difference between ASCII '@' and '`'
+HIST_ADDR	.FILL x3F00                ; histogram starting address
+STR_START	.FILL x4000	               ; string starting address
+ZERO_ASCII .FILL x0030               ;ASCII value of 0
+AMinus10_ASCII .FILL x0037           ;ASCII value of 'A'-10
+At_ASCII .FILL x0040                 ;ASCII value of @
+Rseven   .FILL x5000                 ;Memory Address of things stored in R7
+; for testing, you can use the lines below to include the string in this
+; program...
+; STR_START	.FILL STRING	; string starting address
+; STRING		.STRINGZ "This is a test of the counting frequency code.  AbCd...WxYz."
+
+
+
+	; the directive below tells the assembler that the program is done
+	; (so do not write any code below it!)
+
+	.END

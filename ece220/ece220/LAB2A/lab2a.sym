@@ -1,0 +1,38 @@
+// Symbol table
+// Scope level 0:
+//	Symbol Name       Page Address
+//	----------------  ------------
+//	START             3000
+//	Non_Zero_Case     3012
+//	Zero_Case         3015
+//	Y                 3018
+//	DONE              301A
+//	SPACE             301B
+//	NEW_LINE          301C
+//	CHAR_RETURN       301D
+//	Left_Parenthesis  301E
+//	Right_Parenthesis  301F
+//	IS_BALANCED       3020
+//	POP_LOOP          3028
+//	Unbalanced        3033
+//	PUSH_LOOP         3035
+//	X                 3038
+//	NEG_OPEN          303B
+//	IS_BALANCED_SaveR1  303C
+//	IS_BALANCED_SaveR3  303D
+//	IS_BALANCED_SaveR4  303E
+//	IS_BALANCED_SaveR7  303F
+//	PUSH              3040
+//	OVERFLOW          304E
+//	DONE_PUSH         304F
+//	PUSH_SaveR3       3052
+//	PUSH_SaveR4       3053
+//	POP               3054
+//	UNDERFLOW         3061
+//	DONE_POP          3062
+//	POP_SaveR3        3065
+//	POP_SaveR4        3066
+//	STACK_END         3067
+//	STACK_START       3068
+//	STACK_TOP         3069
+
